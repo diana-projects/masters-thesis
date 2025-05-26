@@ -1,0 +1,24 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug CGFormer Eval",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/main.py",
+      "args": [
+        "--eval",
+        "--ckpt_path", "./ckpts/CGFormer-Efficient-Swin-SemanticKITTI.ckpt",
+        "--config_path", "configs/CGFormer-Efficient-Swin-SemanticKITTI.py",
+        "--log_folder", "CGFormer-Efficient-Swin-SemanticKITTI-eval",
+        "--seed", "7240",
+        "--log_every_n_steps", "100"
+      ],
+      "env": {
+        "CUDA_VISIBLE_DEVICES": "1"
+      },
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}

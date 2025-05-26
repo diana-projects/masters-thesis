@@ -1,0 +1,7 @@
+# ninja log v5
+3	16951	1737567771767079000	/dgx_data1/aclx58n/projects/thesis_projects/CGFormer/packages/DFA3D/build/temp.linux-x86_64-cpython-37/dfa3D/ops/csrc/cuda/cudabind.o	ad9cac692b8ba2e0
+4	17097	1737567771847064000	/dgx_data1/aclx58n/projects/thesis_projects/CGFormer/packages/DFA3D/build/temp.linux-x86_64-cpython-37/dfa3D/ops/csrc/ms_depth_score_sample.o	2810e1c276b73eb6
+6	17695	1737567772508045000	/dgx_data1/aclx58n/projects/thesis_projects/CGFormer/packages/DFA3D/build/temp.linux-x86_64-cpython-37/dfa3D/ops/csrc/wms_deform_attn.o	52006e77b91e0946
+3	19692	1737567774505994000	/dgx_data1/aclx58n/projects/thesis_projects/CGFormer/packages/DFA3D/build/temp.linux-x86_64-cpython-37/dfa3D/ops/csrc/cuda/ms_depth_score_sample_cuda.o	a234a206937d646f
+4	21671	1737567776477957000	/dgx_data1/aclx58n/projects/thesis_projects/CGFormer/packages/DFA3D/build/temp.linux-x86_64-cpython-37/dfa3D/ops/csrc/cuda/wms_deform_attn_cuda.o	c4d890bbfc5ef037
+5	29581	1737567784387266000	/dgx_data1/aclx58n/projects/thesis_projects/CGFormer/packages/DFA3D/build/temp.linux-x86_64-cpython-37/dfa3D/ops/csrc/pybind.o	d0dc33eff1cf4618
