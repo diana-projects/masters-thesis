@@ -1,0 +1,7 @@
+name: /dgx_data1/aclx58n/envs/stereoscene3.7
+channels:
+  - defaults
+dependencies:
+  - python=3.7
+  - cudatoolkit-dev=11.3
+prefix: /dgx_data1/aclx58n/envs/stereoscene3.7

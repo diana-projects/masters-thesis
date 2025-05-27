@@ -1,0 +1,12 @@
+.idea/
+.dist_test/
+.vscode/
+*__pycache__/
+work_dir/
+results/
+pretrain/
+*.tar
+*.pt
+*.pth
+*.ckpt
+
