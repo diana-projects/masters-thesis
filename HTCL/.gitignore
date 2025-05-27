@@ -1,0 +1,7 @@
+*.pth
+output/
+./output
+./log
+.vscode
+results
+pretrain
