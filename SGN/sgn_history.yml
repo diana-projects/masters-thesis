@@ -1,0 +1,6 @@
+name: /dgx_data1/aclx58n/envs/SGN_3.8
+channels:
+  - defaults
+dependencies:
+  - python=3.8
+prefix: /dgx_data1/aclx58n/envs/SGN_3.8
