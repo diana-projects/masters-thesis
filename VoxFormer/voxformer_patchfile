@@ -1,0 +1,58 @@
+diff --git a/projects/mmdet3d_plugin/voxformer/modules/multi_scale_deformable_attn_3D_custom_function.py b/projects/mmdet3d_plugin/voxformer/modules/multi_scale_deformable_attn_3D_custom_function.py
+index 2bc91cd..3eed7e3 100644
+--- a/projects/mmdet3d_plugin/voxformer/modules/multi_scale_deformable_attn_3D_custom_function.py
++++ b/projects/mmdet3d_plugin/voxformer/modules/multi_scale_deformable_attn_3D_custom_function.py
+@@ -15,8 +15,8 @@ import sys
+ 
+ # sys.path.append("/root/autodl-tmp/vox/mmcv-main/cntest/build/lib.linux-x86_64-cpython-38/")
+ # sys.path.append("/home/yml/bevformer/mmdetection3d/deform_3d_cuda/")
+-raise NotImplementedError("Use sys.path.append here to modify the path to your .so file")
+-sys.path.append("/path/to/directory_containing_so_file")
++# raise NotImplementedError("Use sys.path.append here to modify the path to your .so file")
++sys.path.append("/dgx_data1/aclx58n/projects/thesis_projects/VoxFormer/deform_attn_3d")
+ 
+ 
+ 
+diff --git a/tools/dist_test.sh b/tools/dist_test.sh
+index 3e2ec30..97d0ccc 100644
+--- a/tools/dist_test.sh
++++ b/tools/dist_test.sh
+@@ -7,4 +7,4 @@ PORT=${PORT:-29503}
+ 
+ PYTHONPATH="$(dirname $0)/..":$PYTHONPATH \
+ python -m torch.distributed.launch --nproc_per_node=$GPUS --master_port=$PORT \
+-    $(dirname "$0")/test.py $CONFIG $CHECKPOINT --launcher pytorch ${@:4} --eval bbox
++    $(dirname "$0")/test.py $CONFIG $CHECKPOINT --eval mAP --deterministic 
+diff --git a/tools/test.py b/tools/test.py
+index c61657c..e50aa40 100644
+--- a/tools/test.py
++++ b/tools/test.py
+@@ -24,7 +24,8 @@ from projects.mmdet3d_plugin.voxformer.apis.test import custom_multi_gpu_test
+ from mmdet.datasets import replace_ImageToTensor
+ import time
+ import os.path as osp
+-
++import sys
++sys.path.append("/dgx_data1/aclx58n/projects/thesis_projects/VoxFormer/deform_attn_3d")
+ 
+ def parse_args():
+     parser = argparse.ArgumentParser(
+@@ -233,7 +234,8 @@ def main():
+             broadcast_buffers=False)
+         outputs = custom_multi_gpu_test(model, data_loader, args.tmpdir,
+                                         args.gpu_collect)
+-
++    import pdb;
++    pdb.set_trace()
+     rank, _ = get_dist_info()
+     if rank == 0:
+         if args.out:
+@@ -246,6 +248,8 @@ def main():
+         if args.format_only:
+             dataset.format_results(outputs, **kwargs)
+ 
++        import pdb;
++        pdb.set_trace()
+         if args.eval:
+             eval_kwargs = cfg.get('evaluation', {}).copy()
+             # hard-code way to remove EvalHook args
