@@ -1,0 +1,15 @@
+name: /dgx_data1/aclx58n/envs/occformer
+channels:
+  - https://repo.anaconda.com/pkgs/main
+  - https://repo.anaconda.com/pkgs/r
+  - https://highway.porsche.com/artifactory/conda-forge-remote
+  - https://highway.porsche.com/artifactory/api/conda/anaconda-all
+  - https://highway.porsche.com/artifactory/api/conda/anaconda-pytorch-remote
+  - https://conda.anaconda.org/nvidia/
+dependencies:
+  - python=3.7
+  - cudatoolkit-dev=11.3
+variables:
+  CUDA_HOME: /dgx_data1/aclx58n/envs/occformer
+  PATH: /dgx_data1/aclx58n/envs/occformer/bin:/bin:/usr/bin
+prefix: /dgx_data1/aclx58n/envs/occformer
