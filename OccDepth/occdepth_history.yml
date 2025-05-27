@@ -1,0 +1,12 @@
+name: /dgx_data1/aclx58n/envs/occdepth_torch_1_10
+channels:
+  - https://repo.anaconda.com/pkgs/main
+  - https://repo.anaconda.com/pkgs/r
+  - https://highway.porsche.com/artifactory/conda-forge-remote
+  - https://highway.porsche.com/artifactory/api/conda/anaconda-all
+  - https://highway.porsche.com/artifactory/api/conda/anaconda-pytorch-remote
+  - https://conda.anaconda.org/nvidia/
+dependencies:
+  - python=3.7
+  - tbb=2020.2
+prefix: /dgx_data1/aclx58n/envs/occdepth_torch_1_10
