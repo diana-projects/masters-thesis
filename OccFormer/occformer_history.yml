@@ -1,0 +1,10 @@
+name: /dgx_data1/aclx58n/envs/occformer
+channels:
+  - defaults
+dependencies:
+  - python=3.7
+  - cudatoolkit-dev=11.3
+variables:
+  CUDA_HOME: /dgx_data1/aclx58n/envs/occformer
+  PATH: /dgx_data1/aclx58n/envs/occformer/bin:/bin:/usr/bin
+prefix: /dgx_data1/aclx58n/envs/occformer
