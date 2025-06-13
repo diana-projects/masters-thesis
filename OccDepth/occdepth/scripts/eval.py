@@ -110,7 +110,7 @@ def main(config: DictConfig):
         sync_batchnorm=True, deterministic=True, gpus=config.n_gpus, accelerator="ddp"
     )
 
-    model_path = os.path.join(get_original_cwd(), "trained_models", "occdepth.ckpt")
+    model_path = os.path.join(get_original_cwd(), "OccDepth","trained_models", "occdepth.ckpt")
 
     print(
         "##### Max CUDA memory before load model: {} G".format(

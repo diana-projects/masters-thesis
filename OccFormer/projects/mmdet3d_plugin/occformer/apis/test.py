@@ -65,7 +65,6 @@ def custom_single_gpu_test(
             res_table, _ = format_results(ious, return_dic=True)
             print(res_table)
 
-        import pdb; pdb.set_trace()
         img_metas = data['img_metas'].data[0][0]
         # save for test submission
         if is_test_submission:

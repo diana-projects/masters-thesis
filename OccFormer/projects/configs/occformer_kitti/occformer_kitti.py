@@ -86,7 +86,7 @@ model = dict(
         init_cfg=dict(
             type="Pretrained",
             prefix="backbone",
-            checkpoint="ckpts/efficientnet-b7_3rdparty_8xb32-aa_in1k_20220119-bf03951c.pth",
+            checkpoint="OccFormer/ckpts/efficientnet-b7_3rdparty_8xb32-aa_in1k_20220119-bf03951c.pth",
         ),
     ),
     img_neck=dict(
