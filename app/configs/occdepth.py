@@ -5,7 +5,7 @@ class OccDepthConfig(BaseEvalConfig):
     def __init__(self):
         self.model_name = "OccDepth"
         self.cwd = "OccDepth"  
-        self.program = f"./{self.cwd}/occdepth/scripts/eval.py"
+        self.program = f"./{self.cwd}/occdepth/scripts/generate_output.py"
 
         # CLI arguments
         self.n_gpus = 1

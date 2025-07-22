@@ -1,17 +1,17 @@
 import os
 from .base import BaseEvalConfig
 
-class SGNSConfig(BaseEvalConfig):
+class SGNTConfig(BaseEvalConfig):
     def __init__(self):
         self.model_name = "SGN-T"
         self.cwd = "SGN" 
         self.program = f"./{self.cwd}/tools/test.py"
-        self.config_path = f"./{self.cwd}/projects/configs/sgn/sgn-S-one-stage-guidance.py"
-        self.ckpt_path = f"./{self.cwd}/ckpts/sgn-s-epoch_28.pth"
+        self.config_path = f"./{self.cwd}/projects/configs/sgn/sgn-T-one-stage-guidance.py"
+        self.ckpt_path = f"./{self.cwd}/ckpts/sgn-t-epoch_25.pth"
+        self.model_type="T"
         self.eval_metric = "bbox"
         self.eval_mode = "--eval"
         self.extra_args = ["--deterministic"]
-
         self.pythonpath = os.environ.get("PYTHONPATH", "SGN")
 
     def get_args(self):
@@ -22,12 +22,12 @@ class SGNSConfig(BaseEvalConfig):
             self.eval_metric,
             *self.extra_args
         ]
-    
+
     def get_env(self):
         return {
-            "PYTHONPATH": self.pythonpath
+            "PYTHONPATH": self.pythonpath,
+            "MODEL_VERSION": self.model_name,
         }
-
 
     def display_config(self):
         print(f"Model Name: {self.model_name}")

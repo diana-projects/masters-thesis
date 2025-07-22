@@ -34,6 +34,7 @@ def calculate_model_size(model):
 
     size_all_mb = (param_size + buffer_size) / 1024**2
     print('model size: {:.3f}MB'.format(size_all_mb))
+    return '{:.3f}MB'.format(size_all_mb)
 
 def calculate_parameter_number(model):
     total_params = sum(p.numel() for p in model.parameters())
@@ -47,6 +48,7 @@ def calculate_parameter_number(model):
         else:
             return str(n_params)
     print(f"Number of parameters: {format_params(total_params)}")
+    return format_params(total_params)
 
 def calculate_max_memory_allocated(model, kwargs):
     def format_memory(bytes_val):
@@ -66,6 +68,7 @@ def calculate_max_memory_allocated(model, kwargs):
     peak_memory = torch.cuda.max_memory_allocated()
     print(f"Peak GPU memory during inference: {format_memory(peak_memory)}")
 
+    return format_memory(peak_memory)
 
 def calculate_inference_time(model, kwargs):
     starttime = time.time()
@@ -73,6 +76,7 @@ def calculate_inference_time(model, kwargs):
         x = model(**kwargs)
     print("Inference time: ", time.time() - starttime)
 
+    return str(time.time()-starttime)
 
 
 def custom_single_gpu_test(
@@ -91,21 +95,33 @@ def custom_single_gpu_test(
     # evaluate ssc
     ssc_metric = SSCMetrics(len(dataset.class_names)).cuda()
     if save_results:
-        save_path = Path(save_path) if save_path else Path("./results")
+        import os
+        save_path = os.environ['RESULTS_PATH'] if os.environ['RESULTS_PATH'] else Path("./results")
+        save_path = os.path.join(save_path, os.environ['MODEL_VERSION'])
+        os.makedirs(save_path, exist_ok=True)
+        save_path = Path(save_path)
+    technical_dict = {}
     for i, data in enumerate(data_loader):
         with torch.no_grad():
             result = model(return_loss=False, rescale=True, **data)
-            # calculate_model_size(model)
-            # calculate_parameter_number(model)
-            # calculate_inference_time(model, {"return_loss":False, "rescale":True, **data})
-            # calculate_max_memory_allocated(model, {"return_loss":False, "rescale":True, **data})
+            if i==0:
+                model_size = calculate_model_size(model)
+                param_number = calculate_parameter_number(model)
+                inference_time = calculate_inference_time(model, {"return_loss":False, "rescale":True, **data})
+                max_mem_allocated = calculate_max_memory_allocated(model, {"return_loss":False, "rescale":True, **data})
+                technical_dict.update({
+                    "model_size": model_size,
+                    "param_number": param_number,
+                    "inference_time": inference_time,
+                    "max_mem_allocated": max_mem_allocated,
+                })
         output_voxels = torch.argmax(result['output_voxels'], dim=1)
         target_voxels = result['target_voxels'].clone()
         ssc_metric.update(
             y_pred=output_voxels,
             y_true=target_voxels,
         )
-        if save_results and i%5==0 and i<300:
+        if save_results:
             save_filename = (
                 Path(
                     data["img_metas"]._data[0][0][0]["frame_id"],
@@ -113,7 +129,7 @@ def custom_single_gpu_test(
                 .with_suffix(".npy")
                 .name
             )
-            np.save(save_path / save_filename, output_voxels.cpu())
+            np.save(save_path/ save_filename, output_voxels.cpu())
         batch_size = output_voxels.shape[0]
         for _ in range(batch_size):
             prog_bar.update()
@@ -121,7 +137,20 @@ def custom_single_gpu_test(
     res = {
         'ssc_scores': ssc_metric.compute(),
     }
-
+    import pickle 
+    cleaned = {
+        k: (
+            # detach+move to CPU once
+            v.detach().cpu().item()
+            if isinstance(v, torch.Tensor) and v.numel() == 1
+            else (v.tolist() if isinstance(v, torch.Tensor) else v)
+        )
+        for k, v in res['ssc_scores'].items()
+        }
+    with open(os.path.join(save_path,'inference_result.p'), 'wb') as fp:
+        pickle.dump(cleaned, fp)
+    with open(os.path.join(save_path,'technical_details.p'), 'wb') as fp:
+        pickle.dump(technical_dict, fp)
     return res
 
 

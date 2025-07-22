@@ -11,7 +11,7 @@ from collections import OrderedDict
 import torch
 from torchvision import transforms
 import sys
-sys.path.append("projects/mmdet3d_plugin/occupancy/image2bev/manydepth/")
+sys.path.append("./HTCL/projects/mmdet3d_plugin/occupancy/image2bev/manydepth/")
 import networks
 from torch.autograd import Variable
 

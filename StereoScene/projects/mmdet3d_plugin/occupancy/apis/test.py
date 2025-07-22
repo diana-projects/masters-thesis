@@ -57,7 +57,8 @@ def calculate_model_size(model):
 
     size_all_mb = (param_size + buffer_size) / 1024**2
     print('model size: {:.3f}MB'.format(size_all_mb))
-
+    return '{:.3f}MB'.format(size_all_mb)
+    
 def calculate_parameter_number(model):
     total_params = sum(p.numel() for p in model.parameters())
     def format_params(n_params):
@@ -70,6 +71,7 @@ def calculate_parameter_number(model):
         else:
             return str(n_params)
     print(f"Number of parameters: {format_params(total_params)}")
+    return format_params(total_params)
 
 def calculate_max_memory_allocated(model, kwargs):
     def format_memory(bytes_val):
@@ -89,6 +91,7 @@ def calculate_max_memory_allocated(model, kwargs):
     peak_memory = torch.cuda.max_memory_allocated()
     print(f"Peak GPU memory during inference: {format_memory(peak_memory)}")
 
+    return format_memory(peak_memory)
 
 def calculate_inference_time(model, kwargs):
     starttime = time.time()
@@ -96,6 +99,7 @@ def calculate_inference_time(model, kwargs):
         x = model(**kwargs)
     print("Inference time: ", time.time() - starttime)
 
+    return str(time.time()-starttime)
 
 
 def save_output_semantic_kitti(
@@ -143,20 +147,32 @@ def custom_single_gpu_test(
     # evaluate lidarseg
     evaluation_semantic = 0
     if save_results:
-        results_path = results_path if results_path else Path("./results")
+        results_path = os.environ['RESULTS_PATH'] if os.environ['RESULTS_PATH'] else Path("./results")
+        results_path = os.path.join(results_path, "StereoScene")
+        os.makedirs(results_path, exist_ok=True)
+        results_path = Path(results_path)
+
     # evaluate ssc
     is_semkitti = hasattr(dataset, 'camera_used')
     ssc_metric = SSCMetrics().cuda()
     logger.info(parameter_count_table(model, max_depth=4))
 
     batch_size = 1
+    technical_dict = {}
     for i, data in enumerate(data_loader):
         with torch.no_grad():
             result = model(return_loss=False, rescale=True, **data)
-            # calculate_model_size(model)
-            # calculate_parameter_number(model)
-            # calculate_inference_time(model, {"return_loss":False, "rescale":True, **data})
-            # calculate_max_memory_allocated(model, {"return_loss":False, "rescale":True, **data})
+            if i==0:
+                model_size = calculate_model_size(model)
+                param_number = calculate_parameter_number(model)
+                inference_time = calculate_inference_time(model, {"return_loss":False, "rescale":True, **data})
+                max_mem_allocated = calculate_max_memory_allocated(model, {"return_loss":False, "rescale":True, **data})
+                technical_dict.update({
+                    "model_size": model_size,
+                    "param_number": param_number,
+                    "inference_time": inference_time,
+                    "max_mem_allocated": max_mem_allocated,
+                })
             # KITTI workaround
             if not isinstance(result, dict):
                 prog_bar.update()
@@ -190,10 +206,10 @@ def custom_single_gpu_test(
             # print(torch.unique(torch.argmax(result['output_voxels'], dim=1), return_counts=True))
             # print(torch.unique(result['target_voxels'], return_counts=True))
 
-            if save_results and i%5==0:
+            if save_results:
                 save_filename = Path(data['img_metas'].data[0][0]["img_filename"][0]).with_suffix(".npy").name
                 np.save(results_path / save_filename, output_voxels.cpu())
-               
+
             # compute metrics
             scores = ssc_metric.compute()
             if is_semkitti:
@@ -220,7 +236,19 @@ def custom_single_gpu_test(
 
     if type(evaluation_semantic) is np.ndarray:
         res['evaluation_semantic'] = evaluation_semantic
-
+    cleaned = {
+        k: (
+            # detach+move to CPU once
+            v.detach().cpu().item()
+            if isinstance(v, torch.Tensor) and v.numel() == 1
+            else (v.tolist() if isinstance(v, torch.Tensor) else v)
+        )
+        for k, v in res['ssc_scores'].items()
+        }
+    with open(os.path.join(results_path,'inference_result.p'), 'wb') as fp:
+        pickle.dump(cleaned, fp)
+    with open(os.path.join(results_path,'technical_details.p'), 'wb') as fp:
+        pickle.dump(technical_dict, fp)
     return res
 
 

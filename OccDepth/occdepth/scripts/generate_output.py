@@ -30,6 +30,7 @@ def calculate_model_size(model):
 
     size_all_mb = (param_size + buffer_size) / 1024**2
     print('model size: {:.3f}MB'.format(size_all_mb))
+    return '{:.3f}MB'.format(size_all_mb)
 
 def calculate_parameter_number(model):
     total_params = sum(p.numel() for p in model.parameters())
@@ -43,6 +44,8 @@ def calculate_parameter_number(model):
         else:
             return str(n_params)
     print(f"Number of parameters: {format_params(total_params)}")
+
+    return format_params(total_params)
 
 def calculate_max_memory_allocated(model, batch):
     def format_memory(bytes_val):
@@ -62,14 +65,14 @@ def calculate_max_memory_allocated(model, batch):
     peak_memory = torch.cuda.max_memory_allocated()
     print(f"Peak GPU memory during inference: {format_memory(peak_memory)}")
 
+    return format_memory(peak_memory)
 
 def calculate_inference_time(model, batch):
     import time
     starttime = time.time()
     with torch.no_grad():
         x = model(batch)
-    print("Inference time: ", time.time() - starttime)
-
+    return str(time.time()-starttime)
 
 @hydra.main(config_name=config_path)
 def main(config: DictConfig):
@@ -119,7 +122,7 @@ def main(config: DictConfig):
         print("dataset not support")
 
     # Load pretrained models
-    model_path = os.path.join(get_original_cwd(), "trained_models", "occdepth.ckpt")
+    model_path = os.path.join(get_original_cwd(), "OccDepth", "trained_models", "occdepth.ckpt")
 
     model = OccDepth.load_from_checkpoint(
         model_path,
@@ -132,9 +135,15 @@ def main(config: DictConfig):
 
     # Save prediction and additional data
     # to draw the viewing frustum and remove scene outside the room for NYUv2
-    output_path = os.path.join(config_path,"../../../../output", config.dataset)
-    output_path = os.path.abspath(output_path)
+    # output_path = os.path.join(config_path,"../../../../output", config.dataset)
+    
+    output_path = f"../../.{os.environ.get('RESULTS_PATH')}"if os.environ['RESULTS_PATH'] else "../../../../output"
+    output_path = os.path.join(output_path, "OccDepth")
+    os.makedirs(output_path, exist_ok=True)
+
+    # output_path = os.path.abspath(output_path)
     metrics = SSCMetrics()
+    technical_dict = {}
     with torch.no_grad():
         for idx, batch in enumerate(tqdm(data_loader)):
             batch["img"] = batch["img"].cuda()
@@ -143,10 +152,17 @@ def main(config: DictConfig):
             to_cuda(batch["ida_mats"])
 
             pred = model(batch)
-            # calculate_model_size(model)
-            # calculate_parameter_number(model)
-            # calculate_inference_time(model, batch)
-            # calculate_max_memory_allocated(model, batch)
+            if idx==0:
+                model_size = calculate_model_size(model)
+                param_number = calculate_parameter_number(model)
+                inference_time = calculate_inference_time(model, batch)
+                max_mem_allocated = calculate_max_memory_allocated(model, batch)
+                technical_dict.update({
+                    "model_size": model_size,
+                    "param_number": param_number,
+                    "inference_time": inference_time,
+                    "max_mem_allocated": max_mem_allocated,
+                })
             
             y_pred = torch.softmax(pred["ssc_logit"], dim=1).detach().cpu().numpy()
             y_pred = np.argmax(y_pred, axis=1)
@@ -180,7 +196,7 @@ def main(config: DictConfig):
                         batch["fov_mask_1"][i].detach().cpu().numpy()
                     )
                 elif config.dataset == "kitti":
-                    write_path = os.path.join(output_path, batch["sequence"][i])
+                    write_path = os.path.join(output_path)
                     filepath = os.path.join(write_path, batch["frame_id"][i] + ".pkl")
                     out_dict["fov_mask_1"] = (
                         batch["fov_mask_1"][i].detach().cpu().numpy()
@@ -189,14 +205,29 @@ def main(config: DictConfig):
                     out_dict["T_velo_2_cam"] = (
                         batch["T_velo_2_cam"][i].detach().cpu().numpy()
                     )
+
                 # import pdb; pdb.set_trace()
 
-                if idx%5==0:
-                    os.makedirs(write_path, exist_ok=True)
-                    with open(filepath, "wb") as handle:
-                        pickle.dump(out_dict, handle)
-                        print("wrote to", filepath)
+                os.makedirs(write_path, exist_ok=True)
+                with open(filepath, "wb") as handle:
+                    pickle.dump(out_dict, handle)
+                    print("wrote to", filepath)
+    
+        ssc_scores = metrics.compute()
+        cleaned = {
+        k: (
+            # detach+move to CPU once
+            v.detach().cpu().item()
+            if isinstance(v, torch.Tensor) and v.numel() == 1
+            else (v.tolist() if isinstance(v, torch.Tensor) else v)
+        )
+        for k, v in ssc_scores.items()
+        }
+        print("SSC metrics:", ssc_scores)
+        with open(os.path.join(output_path,'inference_result.p'), 'wb') as fp:
+            pickle.dump(cleaned, fp)
+        with open(os.path.join(output_path,'technical_details.p'), 'wb') as fp:
+            pickle.dump(technical_dict, fp)
 
-        print("SSC metrics:", metrics.compute())
 if __name__ == "__main__":
     main()

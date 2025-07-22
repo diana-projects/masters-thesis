@@ -61,7 +61,9 @@ model = dict(
 
 
 dataset_type = 'SemanticKittiDataset'
-data_root = './kitti/'
+# data_root = './kitti/'
+data_root = '/dgx_data1/00_datasets/SemanticKITTI/'
+
 file_client_args = dict(backend='disk')
 
 data = dict(

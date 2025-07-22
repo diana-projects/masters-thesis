@@ -11,7 +11,7 @@ import skimage.transform
 from PIL import Image
 
 import argparse
-sys.path.append('projects/mmdet3d_plugin/occupancy/image2bev/LEAStereo/')
+sys.path.append('./HTCL/projects/mmdet3d_plugin/occupancy/image2bev/LEAStereo/')
 from models.decoding_formulas import network_layer_to_space
 from build_model_2d import Disp
 from new_model_2d import newFeature

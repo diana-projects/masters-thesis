@@ -1,14 +1,14 @@
 import subprocess
 import os
 import threading
-from configs.cgformer import CGFormerConfig
-from configs.htcl import HTCLConfig
-from configs.occdepth import OccDepthConfig
-from configs.occformer import OccFormerConfig
-from configs.sgn_l import SGNLConfig
-from configs.sgn_s import SGNSConfig
-from configs.sgn_t import SGNTConfig
-from configs.stereoscene import StereoSceneConfig
+from app.configs.cgformer import CGFormerConfig
+from app.configs.htcl import HTCLConfig
+from app.configs.occdepth import OccDepthConfig
+from app.configs.occformer import OccFormerConfig
+from app.configs.sgn_l import SGNLConfig
+from app.configs.sgn_s import SGNSConfig
+from app.configs.sgn_t import SGNTConfig
+from app.configs.stereoscene import StereoSceneConfig
 
 MODEL_CONFIGS = {
     "cgformer": CGFormerConfig,
@@ -20,6 +20,7 @@ MODEL_CONFIGS = {
     "stereoscene": StereoSceneConfig,
     "htcl": HTCLConfig,
 }
+
 ENV_PATH = {
     "occdepth": "occdepth_torch_1_10",
     "stereoscene": "stereoscene3.7", 
@@ -29,7 +30,6 @@ ENV_PATH = {
     "sgn-l": "SGN_3.8",
 }
 
-
 def run_model_in_env(env_name: str, cuda_device: int):
     if env_name not in MODEL_CONFIGS:
         raise ValueError(f"Unknown environment name: {env_name}")
@@ -38,7 +38,6 @@ def run_model_in_env(env_name: str, cuda_device: int):
     env = os.environ.copy()
     env["CUDA_VISIBLE_DEVICES"] = str(cuda_device)
     env.update(config.get_env())
-
     env_path = ENV_PATH.get(env_name, env_name) 
 
     PYTHON_PATH = f"/dgx_data1/aclx58n/envs/{env_path}/bin/python"
@@ -67,6 +66,3 @@ def run_model_in_env(env_name: str, cuda_device: int):
         daemon=True,
     ).start()
     process.wait()
-
-if __name__ == "__main__":
-    run_model_in_env("sgn-t", cuda_device=2)
